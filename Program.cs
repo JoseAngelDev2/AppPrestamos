@@ -27,8 +27,6 @@ builder.Services.AddCors(options =>
         policy.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod());
 });
 
-
-
 var app = builder.Build();
 app.UseCors("AllowFront");
 app.MapControllers();
