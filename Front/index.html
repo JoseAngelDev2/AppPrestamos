@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AppPréstamos · Panel de gestión</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --navy:#12233F;
+    --navy-2:#1A3358;
+    --teal:#1F7A5C;
+    --teal-light:#2CA57A;
+    --amber:#E8A33D;
+    --bg:#F4F6F8;
+    --paper:#FFFFFF;
+    --ink:#16233A;
+    --muted:#6B7B93;
+  }
+  body{
+    background:var(--bg);
+    font-family:'Inter', sans-serif;
+    color:var(--ink);
+  }
+  h1,h2,h3,.brand,.section-title{
+    font-family:'Space Grotesk', sans-serif;
+  }
+  .topbar{
+    background:var(--navy);
+    color:#fff;
+    padding:1.1rem 1.5rem;
+  }
+  .topbar .brand{
+    font-weight:700;
+    font-size:1.35rem;
+    letter-spacing:-0.02em;
+  }
+  .topbar .brand span{ color:var(--teal-light); }
+  .config-bar{
+    background:var(--navy-2);
+    color:#cfe0dd;
+    font-size:.85rem;
+    padding:.5rem 1.5rem;
+  }
+  .config-bar input{
+    background:transparent;
+    border:1px solid rgba(255,255,255,.3);
+    color:#fff;
+    font-size:.85rem;
+  }
+  .config-bar input::placeholder{ color:#aebfd6; }
+  .nav-tabs{
+    border-bottom:2px solid #e2e6ea;
+  }
+  .nav-tabs .nav-link{
+    color:var(--muted);
+    font-weight:600;
+    border:none;
+    border-bottom:3px solid transparent;
+    padding:.9rem 1.3rem;
+  }
+  .nav-tabs .nav-link.active{
+    color:var(--navy);
+    border-bottom:3px solid var(--teal);
+    background:transparent;
+  }
+  .section-title{
+    font-weight:700;
+    color:var(--navy);
+  }
+  .card-panel{
+    background:var(--paper);
+    border:1px solid #e6e9ee;
+    border-radius:.6rem;
+  }
+  .table thead th{
+    font-size:.78rem;
+    text-transform:uppercase;
+    letter-spacing:.04em;
+    color:var(--muted);
+    border-bottom:2px solid #e6e9ee;
+    font-weight:600;
+  }
+  .btn-teal{
+    background:var(--teal);
+    border-color:var(--teal);
+    color:#fff;
+  }
+  .btn-teal:hover{
+    background:var(--teal-light);
+    border-color:var(--teal-light);
+    color:#fff;
+  }
+  .badge-status-0{ background:#DCEEE6; color:#1F7A5C; }
+  .badge-status-1{ background:#E3ECFB; color:#2A5CB0; }
+  .badge-status-2{ background:#FBE8E1; color:#C15A2E; }
+  .badge-status-3{ background:#EDEDED; color:#666; }
+  .empty-state{
+    text-align:center;
+    padding:3rem 1rem;
+    color:var(--muted);
+  }
+  .empty-state i{ font-size:2.2rem; color:#c7d0da; }
+  .modal-header{
+    background:var(--navy);
+    color:#fff;
+  }
+  .modal-header .btn-close{ filter:invert(1); }
+  #toastHost{
+    position:fixed; top:1rem; right:1rem; z-index:2000;
+  }
+  .action-btn{
+    border:none; background:none; color:var(--muted); padding:.25rem .4rem;
+  }
+  .action-btn:hover{ color:var(--navy); }
+  .action-btn.danger:hover{ color:#C0392B; }
+</style>
+</head>
+<body>
+
+<div class="topbar d-flex justify-content-between align-items-center">
+  <div class="brand">App<span>Préstamos</span></div>
+  <div class="text-white-50 small">Panel de gestión · Acreedores · Clientes · Préstamos</div>
+</div>
+
+<div id="toastHost"></div>
+
+<div class="container-fluid py-4 px-4">
+
+  <ul class="nav nav-tabs mb-4" id="mainTabs">
+    <li class="nav-item">
+      <button class="nav-link active" data-tab="creditors"><i class="bi bi-bank me-1"></i>Acreedores</button>
+    </li>
+    <li class="nav-item">
+      <button class="nav-link" data-tab="customers"><i class="bi bi-people me-1"></i>Clientes</button>
+    </li>
+    <li class="nav-item">
+      <button class="nav-link" data-tab="loans"><i class="bi bi-cash-coin me-1"></i>Préstamos</button>
+    </li>
+  </ul>
+
+  <!-- CREDITORS -->
+  <div class="tab-pane" id="pane-creditors">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h2 class="section-title h5 mb-0">Acreedores</h2>
+      <button class="btn btn-teal btn-sm" onclick="openCreditorModal()"><i class="bi bi-plus-lg me-1"></i>Nuevo acreedor</button>
+    </div>
+    <div class="card-panel p-3">
+      <div class="table-responsive">
+        <table class="table align-middle mb-0">
+          <thead><tr>
+            <th>Nombre</th><th>Apellido</th><th>Tipo</th><th>Email</th><th>Teléfono</th><th>Edad</th><th class="text-end">Acciones</th>
+          </tr></thead>
+          <tbody id="creditorsBody"></tbody>
+        </table>
+      </div>
+      <div id="creditorsEmpty" class="empty-state d-none">
+        <i class="bi bi-inbox d-block mb-2"></i>
+        No hay acreedores registrados todavía.
+      </div>
+    </div>
+  </div>
+
+  <!-- CUSTOMERS -->
+  <div class="tab-pane d-none" id="pane-customers">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h2 class="section-title h5 mb-0">Clientes</h2>
+      <button class="btn btn-teal btn-sm" onclick="openCustomerModal()"><i class="bi bi-plus-lg me-1"></i>Nuevo cliente</button>
+    </div>
+    <div class="card-panel p-3">
+      <div class="table-responsive">
+        <table class="table align-middle mb-0">
+          <thead><tr>
+            <th>Nombre</th><th>Apellido</th><th>Email</th><th>Teléfono</th><th>Contacto emergencia</th><th>Edad</th><th class="text-end">Acciones</th>
+          </tr></thead>
+          <tbody id="customersBody"></tbody>
+        </table>
+      </div>
+      <div id="customersEmpty" class="empty-state d-none">
+        <i class="bi bi-inbox d-block mb-2"></i>
+        No hay clientes registrados todavía.
+      </div>
+    </div>
+  </div>
+
+  <!-- LOANS -->
+  <div class="tab-pane d-none" id="pane-loans">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h2 class="section-title h5 mb-0">Préstamos</h2>
+      <button class="btn btn-teal btn-sm" onclick="openLoanModal()"><i class="bi bi-plus-lg me-1"></i>Nuevo préstamo</button>
+    </div>
+    <div class="card-panel p-3">
+      <div class="table-responsive">
+        <table class="table align-middle mb-0">
+          <thead><tr>
+            <th>Monto</th><th>Tasa interés</th><th>Inicio</th><th>Vencimiento</th><th>Estado</th><th>ID acreedor</th><th class="text-end">Acciones</th>
+          </tr></thead>
+          <tbody id="loansBody"></tbody>
+        </table>
+      </div>
+      <div id="loansEmpty" class="empty-state d-none">
+        <i class="bi bi-inbox d-block mb-2"></i>
+        No hay préstamos registrados todavía.
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- CREDITOR MODAL -->
+<div class="modal fade" id="creditorModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="creditorModalTitle">Nuevo acreedor</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <form id="creditorForm">
+          <input type="hidden" id="creditorId">
+          <div class="row g-2">
+            <div class="col-6"><label class="form-label small">Nombre</label><input required class="form-control" id="creditorName"></div>
+            <div class="col-6"><label class="form-label small">Apellido</label><input required class="form-control" id="creditorLastName"></div>
+            <div class="col-6"><label class="form-label small">Tipo</label>
+              <select class="form-select" id="creditorType">
+                <option value="Individual">Individual</option>
+                <option value="Empresa">Empresa</option>
+              </select>
+            </div>
+            <div class="col-6"><label class="form-label small">Edad</label><input required type="number" min="18" class="form-control" id="creditorAge"></div>
+            <div class="col-12"><label class="form-label small">Email</label><input required type="email" class="form-control" id="creditorEmail"></div>
+            <div class="col-12"><label class="form-label small">Dirección</label><input required class="form-control" id="creditorAddress"></div>
+            <div class="col-12"><label class="form-label small">Teléfono</label><input required class="form-control" id="creditorPhone"></div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
+        <button class="btn btn-teal btn-sm" onclick="saveCreditor()">Guardar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CUSTOMER MODAL -->
+<div class="modal fade" id="customerModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="customerModalTitle">Nuevo cliente</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <form id="customerForm">
+          <input type="hidden" id="customerId">
+          <div class="row g-2">
+            <div class="col-6"><label class="form-label small">Nombre</label><input required class="form-control" id="customerName"></div>
+            <div class="col-6"><label class="form-label small">Apellido</label><input required class="form-control" id="customerLastName"></div>
+            <div class="col-6"><label class="form-label small">Edad</label><input required type="number" min="0" max="119" class="form-control" id="customerAge"></div>
+            <div class="col-6" id="creditorIdWrap"><label class="form-label small">ID Acreedor</label><input required type="number" class="form-control" id="customerCreditorId"></div>
+            <div class="col-12"><label class="form-label small">Email</label><input required type="email" class="form-control" id="customerEmail"></div>
+            <div class="col-12"><label class="form-label small">Dirección</label><input required class="form-control" id="customerAddress"></div>
+            <div class="col-6"><label class="form-label small">Teléfono</label><input required class="form-control" id="customerPhone"></div>
+            <div class="col-6"><label class="form-label small">Contacto de emergencia</label><input required class="form-control" id="customerContactEmergency"></div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
+        <button class="btn btn-teal btn-sm" onclick="saveCustomer()">Guardar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- LOAN MODAL -->
+<div class="modal fade" id="loanModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="loanModalTitle">Nuevo préstamo</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <form id="loanForm">
+          <input type="hidden" id="loanId">
+          <div class="row g-2">
+            <div class="col-6"><label class="form-label small">Monto</label><input required type="number" step="0.01" class="form-control" id="loanAmount"></div>
+            <div class="col-6"><label class="form-label small">Tasa de interés (%)</label><input required type="number" step="0.01" class="form-control" id="loanInterestRate"></div>
+            <div class="col-6"><label class="form-label small">Fecha inicio</label><input required type="date" class="form-control" id="loanStartDate"></div>
+            <div class="col-6"><label class="form-label small">Fecha vencimiento</label><input required type="date" class="form-control" id="loanDueDate"></div>
+            <div class="col-6"><label class="form-label small">Estado</label>
+              <select class="form-select" id="loanStatus">
+                <option value="0">Activo</option>
+                <option value="1">Pagado</option>
+                <option value="2">Atrasado</option>
+                <option value="3">Cancelado</option>
+              </select>
+            </div>
+            <div class="col-6"><label class="form-label small">ID Acreedor</label><input required type="number" class="form-control" id="loanCreditorId"></div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
+        <button class="btn btn-teal btn-sm" onclick="saveLoan()">Guardar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+/* ============ Config ============ */
+// Ajusta esta URL si tu API corre en otro puerto o dirección
+const API_BASE = 'http://localhost:5112/api';
+
+/* ============ Helpers ============ */
+function showToast(message, type='success'){
+  const id = 't' + Date.now();
+  const bg = type === 'success' ? 'text-bg-success' : 'text-bg-danger';
+  const html = `
+    <div id="${id}" class="toast align-items-center ${bg} border-0" role="alert">
+      <div class="d-flex">
+        <div class="toast-body">${message}</div>
+        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+      </div>
+    </div>`;
+  document.getElementById('toastHost').insertAdjacentHTML('beforeend', html);
+  const el = document.getElementById(id);
+  const toast = new bootstrap.Toast(el, { delay: 3500 });
+  toast.show();
+  el.addEventListener('hidden.bs.toast', () => el.remove());
+}
+
+async function apiRequest(path, options = {}){
+  const url = `${API_BASE}${path}`;
+  try{
+    const res = await fetch(url, {
+      headers: { 'Content-Type': 'application/json' },
+      ...options
+    });
+    if(!res.ok){
+      let detail = '';
+      try { detail = await res.text(); } catch(e){}
+      throw new Error(`HTTP ${res.status} ${res.statusText} ${detail ? '- ' + detail : ''}`);
+    }
+    if(res.status === 204) return null;
+    const text = await res.text();
+    return text ? JSON.parse(text) : null;
+  }catch(err){
+    throw err;
+  }
+}
+
+function fmtDate(d){
+  if(!d) return '-';
+  return new Date(d).toLocaleDateString('es-DO');
+}
+
+const statusLabels = ['Activo', 'Pagado', 'Atrasado', 'Cancelado'];
+
+/* ============ Tabs ============ */
+document.querySelectorAll('#mainTabs .nav-link').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('#mainTabs .nav-link').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    document.querySelectorAll('.tab-pane').forEach(p => p.classList.add('d-none'));
+    document.getElementById('pane-' + btn.dataset.tab).classList.remove('d-none');
+  });
+});
+
+/* ============ CREDITORS ============ */
+async function loadCreditors(){
+  try{
+    const data = await apiRequest('/Creditor');
+    const body = document.getElementById('creditorsBody');
+    const empty = document.getElementById('creditorsEmpty');
+    body.innerHTML = '';
+    if(!data || data.length === 0){ empty.classList.remove('d-none'); return; }
+    empty.classList.add('d-none');
+    data.forEach(c => {
+      body.insertAdjacentHTML('beforeend', `
+        <tr>
+          <td>${c.name ?? ''}</td>
+          <td>${c.lastName ?? ''}</td>
+          <td><span class="badge text-bg-light border">${c.type ?? '-'}</span></td>
+          <td>${c.email ?? ''}</td>
+          <td>${c.phone ?? ''}</td>
+          <td>${c.age ?? ''}</td>
+          <td class="text-end">
+            <button class="action-btn" onclick='openCreditorModal(${JSON.stringify(c)})' title="Editar"><i class="bi bi-pencil"></i></button>
+            <button class="action-btn danger" onclick="deleteCreditor(${c.id})" title="Eliminar"><i class="bi bi-trash"></i></button>
+          </td>
+        </tr>`);
+    });
+  }catch(err){ showToast('Error al cargar acreedores: ' + err.message, 'danger'); }
+}
+
+function openCreditorModal(c = null){
+  document.getElementById('creditorForm').reset();
+  document.getElementById('creditorId').value = c?.id ?? '';
+  document.getElementById('creditorModalTitle').textContent = c ? 'Editar acreedor' : 'Nuevo acreedor';
+  if(c){
+    creditorName.value = c.name ?? '';
+    creditorLastName.value = c.lastName ?? '';
+    creditorType.value = c.type ?? 'Individual';
+    creditorAge.value = c.age ?? '';
+    creditorEmail.value = c.email ?? '';
+    creditorAddress.value = c.address ?? '';
+    creditorPhone.value = c.phone ?? '';
+  }
+  new bootstrap.Modal(document.getElementById('creditorModal')).show();
+}
+
+async function saveCreditor(){
+  const form = document.getElementById('creditorForm');
+  if(!form.reportValidity()) return;
+  const id = document.getElementById('creditorId').value;
+  const payload = {
+    name: creditorName.value,
+    lastName: creditorLastName.value,
+    type: creditorType.value,
+    age: Number(creditorAge.value),
+    email: creditorEmail.value,
+    address: creditorAddress.value,
+    phone: creditorPhone.value
+  };
+  try{
+    if(id){
+      await apiRequest(`/Creditor/${id}`, { method:'PUT', body: JSON.stringify(payload) });
+      showToast('Acreedor actualizado');
+    }else{
+      await apiRequest('/Creditor', { method:'POST', body: JSON.stringify(payload) });
+      showToast('Acreedor creado');
+    }
+    bootstrap.Modal.getInstance(document.getElementById('creditorModal')).hide();
+    loadCreditors();
+  }catch(err){ showToast('Error al guardar: ' + err.message, 'danger'); }
+}
+
+async function deleteCreditor(id){
+  if(!confirm('¿Eliminar este acreedor?')) return;
+  try{
+    await apiRequest(`/Creditor?id=${id}`, { method:'DELETE' });
+    showToast('Acreedor eliminado');
+    loadCreditors();
+  }catch(err){ showToast('Error al eliminar: ' + err.message, 'danger'); }
+}
+
+/* ============ CUSTOMERS ============ */
+async function loadCustomers(){
+  try{
+    const data = await apiRequest('/Customer');
+    const body = document.getElementById('customersBody');
+    const empty = document.getElementById('customersEmpty');
+    body.innerHTML = '';
+    if(!data || data.length === 0){ empty.classList.remove('d-none'); return; }
+    empty.classList.add('d-none');
+    data.forEach(c => {
+      body.insertAdjacentHTML('beforeend', `
+        <tr>
+          <td>${c.name ?? ''}</td>
+          <td>${c.lastName ?? ''}</td>
+          <td>${c.email ?? ''}</td>
+          <td>${c.phone ?? ''}</td>
+          <td>${c.contactEmergency ?? ''}</td>
+          <td>${c.age ?? ''}</td>
+          <td class="text-end">
+            <button class="action-btn" onclick='openCustomerModal(${JSON.stringify(c)})' title="Editar"><i class="bi bi-pencil"></i></button>
+            <button class="action-btn danger" onclick="deleteCustomer(${c.id})" title="Eliminar"><i class="bi bi-trash"></i></button>
+          </td>
+        </tr>`);
+    });
+  }catch(err){ showToast('Error al cargar clientes: ' + err.message, 'danger'); }
+}
+
+function openCustomerModal(c = null){
+  document.getElementById('customerForm').reset();
+  document.getElementById('customerId').value = c?.id ?? '';
+  document.getElementById('customerModalTitle').textContent = c ? 'Editar cliente' : 'Nuevo cliente';
+  // creditorId solo aplica al crear (la API no lo acepta al actualizar)
+  document.getElementById('creditorIdWrap').classList.toggle('d-none', !!c);
+  document.getElementById('customerCreditorId').required = !c;
+  if(c){
+    customerName.value = c.name ?? '';
+    customerLastName.value = c.lastName ?? '';
+    customerAge.value = c.age ?? '';
+    customerEmail.value = c.email ?? '';
+    customerAddress.value = c.address ?? '';
+    customerPhone.value = c.phone ?? '';
+    customerContactEmergency.value = c.contactEmergency ?? '';
+  }
+  new bootstrap.Modal(document.getElementById('customerModal')).show();
+}
+
+async function saveCustomer(){
+  const form = document.getElementById('customerForm');
+  if(!form.reportValidity()) return;
+  const id = document.getElementById('customerId').value;
+  try{
+    if(id){
+      const payload = {
+        name: customerName.value,
+        lastName: customerLastName.value,
+        age: Number(customerAge.value),
+        email: customerEmail.value,
+        address: customerAddress.value,
+        phone: customerPhone.value,
+        contactEmergency: customerContactEmergency.value
+      };
+      await apiRequest(`/Customer?id=${id}`, { method:'PUT', body: JSON.stringify(payload) });
+      showToast('Cliente actualizado');
+    }else{
+      const payload = {
+        name: customerName.value,
+        lastName: customerLastName.value,
+        age: Number(customerAge.value),
+        email: customerEmail.value,
+        address: customerAddress.value,
+        phone: customerPhone.value,
+        contactEmergency: customerContactEmergency.value,
+        creditorId: Number(customerCreditorId.value)
+      };
+      await apiRequest('/Customer', { method:'POST', body: JSON.stringify(payload) });
+      showToast('Cliente creado');
+    }
+    bootstrap.Modal.getInstance(document.getElementById('customerModal')).hide();
+    loadCustomers();
+  }catch(err){ showToast('Error al guardar: ' + err.message, 'danger'); }
+}
+
+async function deleteCustomer(id){
+  if(!confirm('¿Eliminar este cliente?')) return;
+  try{
+    await apiRequest(`/Customer/${id}`, { method:'DELETE' });
+    showToast('Cliente eliminado');
+    loadCustomers();
+  }catch(err){ showToast('Error al eliminar: ' + err.message, 'danger'); }
+}
+
+/* ============ LOANS ============ */
+async function loadLoans(){
+  try{
+    const data = await apiRequest('/Loan');
+    const body = document.getElementById('loansBody');
+    const empty = document.getElementById('loansEmpty');
+    body.innerHTML = '';
+    if(!data || data.length === 0){ empty.classList.remove('d-none'); return; }
+    empty.classList.add('d-none');
+    data.forEach(l => {
+      body.insertAdjacentHTML('beforeend', `
+        <tr>
+          <td>$${Number(l.amount).toLocaleString('es-DO', {minimumFractionDigits:2})}</td>
+          <td>${l.interestRate}%</td>
+          <td>${fmtDate(l.startDate)}</td>
+          <td>${fmtDate(l.dueDate)}</td>
+          <td><span class="badge badge-status-${l.status}">${statusLabels[l.status] ?? l.status}</span></td>
+          <td>${l.creditorId ?? '-'}</td>
+          <td class="text-end">
+            <button class="action-btn" onclick='openLoanModal(${JSON.stringify(l)})' title="Editar"><i class="bi bi-pencil"></i></button>
+            <button class="action-btn danger" onclick="deleteLoan(${l.id})" title="Eliminar"><i class="bi bi-trash"></i></button>
+          </td>
+        </tr>`);
+    });
+  }catch(err){ showToast('Error al cargar préstamos: ' + err.message, 'danger'); }
+}
+
+function toInputDate(d){
+  if(!d) return '';
+  return new Date(d).toISOString().slice(0,10);
+}
+
+function openLoanModal(l = null){
+  document.getElementById('loanForm').reset();
+  document.getElementById('loanId').value = l?.id ?? '';
+  document.getElementById('loanModalTitle').textContent = l ? 'Editar préstamo' : 'Nuevo préstamo';
+  if(l){
+    loanAmount.value = l.amount ?? '';
+    loanInterestRate.value = l.interestRate ?? '';
+    loanStartDate.value = toInputDate(l.startDate);
+    loanDueDate.value = toInputDate(l.dueDate);
+    loanStatus.value = l.status ?? 0;
+    loanCreditorId.value = l.creditorId ?? '';
+  }
+  new bootstrap.Modal(document.getElementById('loanModal')).show();
+}
+
+async function saveLoan(){
+  const form = document.getElementById('loanForm');
+  if(!form.reportValidity()) return;
+  const id = document.getElementById('loanId').value;
+  const payload = {
+    amount: Number(loanAmount.value),
+    interestRate: Number(loanInterestRate.value),
+    startDate: loanStartDate.value,
+    dueDate: loanDueDate.value,
+    status: Number(loanStatus.value),
+    creditorId: Number(loanCreditorId.value)
+  };
+  try{
+    if(id){
+      await apiRequest(`/Loan/${id}`, { method:'PUT', body: JSON.stringify(payload) });
+      showToast('Préstamo actualizado');
+    }else{
+      await apiRequest('/Loan', { method:'POST', body: JSON.stringify(payload) });
+      showToast('Préstamo creado');
+    }
+    bootstrap.Modal.getInstance(document.getElementById('loanModal')).hide();
+    loadLoans();
+  }catch(err){ showToast('Error al guardar: ' + err.message, 'danger'); }
+}
+
+async function deleteLoan(id){
+  if(!confirm('¿Eliminar este préstamo?')) return;
+  try{
+    await apiRequest(`/Loan/${id}`, { method:'DELETE' });
+    showToast('Préstamo eliminado');
+    loadLoans();
+  }catch(err){ showToast('Error al eliminar: ' + err.message, 'danger'); }
+}
+
+/* ============ Init ============ */
+function loadAll(){
+  loadCreditors();
+  loadCustomers();
+  loadLoans();
+}
+loadAll();
+</script>
+</body>
+</html>
